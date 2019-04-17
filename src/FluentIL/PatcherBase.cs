@@ -3,6 +3,7 @@ using FluentIL.Logging;
 using FluentIL.Resolvers;
 using Mono.Cecil;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace FluentIL
@@ -17,7 +18,7 @@ namespace FluentIL
             _log = logger;
         }
 
-        public void Process(string assemblyFile, ArraySegment<string> references, bool optimize)
+        public void Process(string assemblyFile, IReadOnlyList<string> references, bool optimize)
         {
             var resolver = GetResolver(assemblyFile, references);
             if (_log.IsErrorThrown) return;
@@ -32,7 +33,7 @@ namespace FluentIL
                 _log.Log(GenericErrorRule, $"Target not found: '{assemblyFile}'");
                 return;
             }
-
+            
             _log.Log(GenericInfoRule, $"Started for {Path.GetFileName(assemblyFile)}");
 
             var pdbPresent = AreSymbolsFound(assemblyFile);
@@ -54,7 +55,7 @@ namespace FluentIL
             }
         }
 
-        protected virtual IAssemblyResolver GetResolver(string assemblyFile, ArraySegment<string> references)
+        protected virtual IAssemblyResolver GetResolver(string assemblyFile, IReadOnlyList<string> references)
         {
             var resolver = new KnownReferencesAssemblyResolver();
 
