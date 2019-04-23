@@ -2,7 +2,6 @@
 using FluentIL.Logging;
 using FluentIL.Resolvers;
 using Mono.Cecil;
-using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -18,28 +17,28 @@ namespace FluentIL
             _log = logger;
         }
 
-        public void Process(string assemblyFile, IReadOnlyList<string> references, bool optimize)
+        public void Process(string assemblyFile, IReadOnlyList<string> references, bool optimize, bool verbose)
         {
             var resolver = GetResolver(assemblyFile, references);
             if (_log.IsErrorThrown) return;
 
-            Process(assemblyFile, resolver, optimize);
+            Process(assemblyFile, resolver, optimize, verbose);
         }
 
-        public void Process(string assemblyFile, IAssemblyResolver resolver, bool optimize)
+        public void Process(string assemblyFile, IAssemblyResolver resolver, bool optimize, bool verbose)
         {
             if (!File.Exists(assemblyFile))
             {
                 _log.Log(GenericErrorRule, $"Target not found: '{assemblyFile}'");
                 return;
             }
-            
-            _log.Log(GenericInfoRule, $"Started for {Path.GetFileName(assemblyFile)}");
+
+            if (verbose) _log.Log(GenericInfoRule, $"Started for {Path.GetFileName(assemblyFile)}");
 
             var pdbPresent = AreSymbolsFound(assemblyFile);
-            var assembly = ReadAssembly(assemblyFile, resolver, pdbPresent);
+            var assembly = ReadAssembly(assemblyFile, resolver, pdbPresent, verbose);
 
-            var modified = PatchAssembly(assembly, optimize);
+            var modified = PatchAssembly(assembly, optimize, verbose);
 
             if (!_log.IsErrorThrown)
             {
@@ -48,10 +47,11 @@ namespace FluentIL
                     foreach (var m in assembly.Modules)
                         StandardTypes.UpdateCoreLibRef(m);
 
-                    _log.Log(GenericInfoRule, "Assembly has been patched.");
-                    WriteAssembly(assembly, assemblyFile, pdbPresent);
+                    if (verbose) _log.Log(GenericInfoRule, "Assembly has been patched.");
+
+                    WriteAssembly(assembly, assemblyFile, pdbPresent, verbose);
                 }
-                else _log.Log(GenericInfoRule, "No patching required.");
+                else if (verbose) _log.Log(GenericInfoRule, "No patching required.");
             }
         }
 
@@ -71,7 +71,7 @@ namespace FluentIL
             return resolver;
         }
 
-        private AssemblyDefinition ReadAssembly(string assemblyFile, IAssemblyResolver resolver, bool readSymbols)
+        private AssemblyDefinition ReadAssembly(string assemblyFile, IAssemblyResolver resolver, bool readSymbols,bool verbose)
         {
             var assembly = AssemblyDefinition.ReadAssembly(assemblyFile,
                 new ReaderParameters
@@ -89,12 +89,12 @@ namespace FluentIL
                 ReadSymbols = readSymbols
             });
 
-            _log.Log(GenericInfoRule, "Assembly has been read.");
+            if (verbose) _log.Log(GenericInfoRule, "Assembly has been read.");
 
             return assembly;
         }
 
-        private void WriteAssembly(AssemblyDefinition assembly, string path, bool writeSymbols)
+        private void WriteAssembly(AssemblyDefinition assembly, string path, bool writeSymbols, bool verbose)
         {
             var param = new WriterParameters();
 
@@ -114,7 +114,7 @@ namespace FluentIL
             assembly.Dispose();
             assembly = null;
 
-            _log.Log(GenericInfoRule, "Assembly has been written.");
+            if (verbose) _log.Log(GenericInfoRule, "Assembly has been written.");
         }
 
         private bool AreSymbolsFound(string dllPath)
@@ -133,6 +133,6 @@ namespace FluentIL
         protected abstract Rule GenericInfoRule { get; }
         protected abstract Rule GenericErrorRule { get; }
 
-        protected abstract bool PatchAssembly(AssemblyDefinition assembly, bool optimize);
+        protected abstract bool PatchAssembly(AssemblyDefinition assembly, bool optimize, bool verbose);
     }
 }
