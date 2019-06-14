@@ -25,6 +25,12 @@ namespace FluentIL
             }
         }
 
+        public static void Append(this MethodBody body, PointCut action)
+        {
+            var cut = new Cut(body, entry: false, exit: true);
+            cut.Here(action);            
+        }
+
         public static void Before(this MethodBody body, Instruction instruction, PointCut action)
         {
             if (!body.Instructions.Contains(instruction))
