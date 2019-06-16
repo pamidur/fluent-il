@@ -8,6 +8,12 @@ namespace FluentIL
 {
     public static class MethodEditor
     {
+        public static void BeforeInstruction(this MethodBody body, Instruction instruction, PointCut action)
+        {
+            var cut = new Cut(body, instruction)
+                .Prev()
+                .Here(action);
+        }
         public static void AfterEntry(this MethodBody body, PointCut action)
         {
             var cut = new Cut(body, GetCodeStart(body))
@@ -28,7 +34,7 @@ namespace FluentIL
         public static void Append(this MethodBody body, PointCut action)
         {
             var cut = new Cut(body, entry: false, exit: true);
-            cut.Here(action);            
+            cut.Here(action);
         }
 
         public static void Before(this MethodBody body, Instruction instruction, PointCut action)
