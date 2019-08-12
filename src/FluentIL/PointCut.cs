@@ -148,35 +148,35 @@ namespace FluentIL
             return prevCut;
         }
 
-        private void Redirect(Instruction source, Instruction to, Instruction from)
+        private void Redirect(Instruction source, Instruction next, Instruction prev)
         {
             var refs = Instructions.Where(i => i.Operand == source).ToList();
 
             if (refs.Any())
             {
-                if (to == null)
+                if (next == null)
                     throw new InvalidOperationException();
 
                 foreach (var rref in refs)
-                    rref.Operand = to;
+                    rref.Operand = next;
             }
 
             foreach (var handler in _body.ExceptionHandlers)
             {
                 if (handler.FilterStart == source)
-                    handler.FilterStart = to ?? throw new InvalidOperationException();
+                    handler.FilterStart = prev ?? throw new InvalidOperationException();
 
                 if (handler.HandlerEnd == source)
-                    handler.HandlerEnd = from ?? throw new InvalidOperationException();
+                    handler.HandlerEnd = next ?? throw new InvalidOperationException();
 
                 if (handler.HandlerStart == source)
-                    handler.HandlerStart = to ?? throw new InvalidOperationException();
+                    handler.HandlerStart = prev ?? throw new InvalidOperationException();
 
                 if (handler.TryEnd == source)
-                    handler.TryEnd = from ?? throw new InvalidOperationException();
+                    handler.TryEnd = next ?? throw new InvalidOperationException();
 
                 if (handler.TryStart == source)
-                    handler.TryStart = to ?? throw new InvalidOperationException();
+                    handler.TryStart = prev ?? throw new InvalidOperationException();
             }
         }
 
