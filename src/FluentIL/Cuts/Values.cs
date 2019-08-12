@@ -8,16 +8,7 @@ using System.Reflection;
 namespace FluentIL
 {
     public static class Values
-    {
-        private static readonly MethodReference _getTypeFromHandleMethod =
-            StandardTypes.Type.Resolve()
-            .Methods.First(m => m.Name == "GetTypeFromHandle")
-            .MakeHostInstanceGeneric(StandardTypes.Type);
-
-        private static readonly MethodReference _getMethodFromHandleMethod =
-            StandardTypes.GetType(typeof(MethodBase)).Resolve()
-            .Methods.First(m => m.Name == "GetMethodFromHandle" && m.Parameters.Count == 2)
-            .MakeHostInstanceGeneric(StandardTypes.GetType(typeof(MethodBase)));
+    {       
 
         public static Cut Pop(this Cut pc) => pc
             .Write(OpCodes.Pop);
@@ -31,14 +22,14 @@ namespace FluentIL
         public static Cut Delegate(this Cut cut, MethodReference method) => cut
             .Write(OpCodes.Ldftn, method);
 
-        public static Cut TypeOf(this Cut pc, TypeReference type) => pc
-            .Write(OpCodes.Ldtoken, pc.Method.MakeCallReference(type))
-            .Write(OpCodes.Call, _getTypeFromHandleMethod);
+        public static Cut TypeOf(this Cut cut, TypeReference type) => cut
+            .Write(OpCodes.Ldtoken, cut.Method.MakeCallReference(type))
+            .Write(OpCodes.Call, GetTypeFromHandleMethod_Ref(cut));
 
-        public static Cut MethodOf(this Cut pc, MethodReference method) => pc
+        public static Cut MethodOf(this Cut cut, MethodReference method) => cut
             .Write(OpCodes.Ldtoken, method)
             .Write(OpCodes.Ldtoken, method.DeclaringType.MakeCallReference(method.DeclaringType))
-            .Write(OpCodes.Call, _getMethodFromHandleMethod);
+            .Write(OpCodes.Call, GetMethodFromHandleMethod_Ref(cut));
 
         public static Cut Value(this Cut pc, object value)
         {
@@ -203,6 +194,24 @@ namespace FluentIL
             }
 
             return pc;
+        }
+
+        private static MethodReference GetTypeFromHandleMethod_Ref(Cut cut)
+        {
+            var tref = cut.Import(StandardTypes.Type);
+            var mr = new MethodReference("GetTypeFromHandle", tref, tref);
+            mr.Parameters.Add(new ParameterDefinition(cut.Import(StandardTypes.GetType(typeof(RuntimeTypeHandle)))));
+
+            return mr;
+        }
+
+        private static MethodReference GetMethodFromHandleMethod_Ref(Cut cut)
+        {
+            var mbref = cut.Import(StandardTypes.GetType(typeof(MethodBase)));
+            var mr = new MethodReference("GetMethodFromHandle", mbref, mbref);
+            mr.Parameters.Add(new ParameterDefinition(cut.Import(StandardTypes.GetType(typeof(RuntimeMethodHandle)))));
+            mr.Parameters.Add(new ParameterDefinition(cut.Import(StandardTypes.GetType(typeof(RuntimeTypeHandle)))));
+            return mr;
         }
     }
 }

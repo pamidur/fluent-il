@@ -12,7 +12,7 @@ namespace FluentIL
             .AssemblyReferences.First(r => r.Name == "netstandard");
 
         private static readonly ModuleDefinition _fakeModule = ModuleDefinition.CreateModule("fakemodule", ModuleKind.Dll);
-        private static readonly Dictionary<Type, TypeReference> _typeCache = new Dictionary<Type, TypeReference>();      
+        private static readonly Dictionary<Type, TypeReference> _typeCache = new Dictionary<Type, TypeReference>();
 
         public static TypeReference Boolean { get; } = GetType(typeof(bool));
         public static TypeReference Byte { get; } = GetType(typeof(byte));
@@ -47,7 +47,7 @@ namespace FluentIL
         {
             if (!_typeCache.TryGetValue(type, out var tr))
             {
-                tr = new TypeReference(type.Namespace, type.Name, _fakeModule, _corelib);
+                tr = new TypeReference(type.Namespace, type.Name, _fakeModule, _corelib, type.IsValueType);
 
                 if (type.IsGenericTypeDefinition)
                 {
