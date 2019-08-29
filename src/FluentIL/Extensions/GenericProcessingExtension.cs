@@ -7,8 +7,8 @@ namespace FluentIL.Extensions
 {
     public static class GenericProcessingExtension
     {
-        public static MethodReference MakeHostInstanceGeneric(
-                                  this MethodReference self,
+        public static MethodReference MakeGenericReference(
+                                  this MethodDefinition self,
                                   TypeReference context)
         {
             var reference = new MethodReference(
@@ -20,7 +20,6 @@ namespace FluentIL.Extensions
                 ExplicitThis = self.ExplicitThis,
                 CallingConvention = self.CallingConvention
             };
-
             foreach (var parameter in self.Parameters)
             {
                 reference.Parameters.Add(new ParameterDefinition(parameter.ParameterType));
@@ -28,27 +27,17 @@ namespace FluentIL.Extensions
 
             foreach (var genericParam in self.GenericParameters)
             {
-                reference.GenericParameters.Add(new GenericParameter(genericParam.Name, self.Resolve()));
+                reference.GenericParameters.Add(genericParam.Clone(self));
             }
-
-            return reference;
-        }
-
-        public static FieldReference MakeHostInstanceGeneric(
-                                  this FieldReference self,
-                                  TypeReference context)
-        {
-            var reference = new FieldReference(
-                self.Name,
-                self.FieldType,
-                context.MakeCallReference(self.DeclaringType));
 
             return reference;
         }
 
         public static FieldReference MakeCallReference(this MemberReference member, FieldReference reference)
         {
-            return member.Module.ImportReference(new FieldReference(reference.Name, member.Module.ImportReference(reference.FieldType), member.MakeCallReference(reference.DeclaringType)));
+            var result = 
+             member.Module.ImportReference(new FieldReference(reference.Name, member.Module.ImportReference(reference.FieldType), member.MakeCallReference(reference.DeclaringType)));
+            return result;
         }
 
         public static MethodReference MakeCallReference(this MemberReference member, MethodReference reference)
@@ -98,22 +87,13 @@ namespace FluentIL.Extensions
             return generic.Resolve().MakeGenericInstanceType(args);
         }
 
-        public static GenericInstanceMethod ParametrizeGenericInstance(this MemberReference member, GenericInstanceMethod generic)
-        {
-            if (!generic.ContainsGenericParameter)
-                return generic;
-
-            var args = generic.GenericArguments.Select(ga => member.ResolveIfGeneric(ga)).ToList();
-
-            var result = new GenericInstanceMethod(generic);
-            args.ForEach(result.GenericArguments.Add);
-            return result;
-        }
-
         public static TypeReference ResolveIfGeneric(this MemberReference member, TypeReference param)
         {
             if (param.ContainsGenericParameter)
-                return member.ResolveGenericType(param);
+            {
+                var gparam = member.ResolveGenericType(param);
+                return gparam;
+            }
 
             return param;
         }
@@ -148,20 +128,9 @@ namespace FluentIL.Extensions
             }
             else if (member.DeclaringType != null)
                 return member.DeclaringType.ResolveGenericType(gparam);
+            //else 
             else
                 throw new Exception("Cannot resolve generic parameter");
-        }
-
-        public static TypeReference MakeGenericInstanceReference(this TypeReference openGenericType, params TypeReference[] arguments)
-        {
-            if (openGenericType.GenericParameters.Count != arguments.Length)
-                throw new ArgumentException("Generic arguments number mismatch", "arguments");
-
-            var instance = new GenericInstanceType(openGenericType);
-            foreach (var argument in arguments)
-                instance.GenericArguments.Add(argument);
-
-            return instance;
         }
     }
 }

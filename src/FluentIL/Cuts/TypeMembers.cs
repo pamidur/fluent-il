@@ -32,28 +32,28 @@ namespace FluentIL
 
         public static Cut Load(this Cut cut, FieldReference field)
         {
-            var fieldRef = cut.Method.MakeCallReference(cut.Import(field));
+            CheckReference(field);
             var fieldDef = field.Resolve();
 
-            return cut.Write(fieldDef.IsStatic ? OpCodes.Ldsfld : OpCodes.Ldfld, fieldRef);
+            return cut.Write(fieldDef.IsStatic ? OpCodes.Ldsfld : OpCodes.Ldfld, field);
         }
 
         public static Cut LoadRef(this Cut cut, FieldReference field)
         {
-            var fieldRef = cut.Method.MakeCallReference(cut.Import(field));
+            CheckReference(field);
             var fieldDef = field.Resolve();
 
-            return cut.Write(fieldDef.IsStatic ? OpCodes.Ldsflda : OpCodes.Ldflda, fieldRef);
+            return cut.Write(fieldDef.IsStatic ? OpCodes.Ldsflda : OpCodes.Ldflda, field);
         }
 
         public static Cut Store(this Cut cut, FieldReference field, PointCut value = null)
         {
-            var fieldRef = cut.Method.MakeCallReference(cut.Import(field));
+            CheckReference(field);
             var fieldDef = field.Resolve();
 
             return cut
                 .Here(value)
-                .Write(fieldDef.IsStatic ? OpCodes.Stsfld : OpCodes.Stfld, fieldRef);
+                .Write(fieldDef.IsStatic ? OpCodes.Stsfld : OpCodes.Stfld, field);
         }
 
         public static Cut Load(this Cut cut, ParameterReference par)
@@ -80,6 +80,15 @@ namespace FluentIL
                     .Here(value)
                     .Write(OpCodes.Starg, par.Resolve());
             }
+        }
+
+        private static void CheckReference(MemberReference member)
+        {
+            if (
+                (member is MethodReference method && method.HasGenericParameters) ||
+                (member.DeclaringType != null && member.DeclaringType.HasGenericParameters)
+                )
+                throw new ArgumentException($"Uninitialized generic call reference: {member.ToString()}");
         }
     }
 }
