@@ -33,13 +33,6 @@ namespace FluentIL.Extensions
             return reference;
         }
 
-        public static FieldReference MakeCallReference(this MemberReference member, FieldReference reference)
-        {
-            var result = 
-             member.Module.ImportReference(new FieldReference(reference.Name, member.Module.ImportReference(reference.FieldType), member.MakeCallReference(reference.DeclaringType)));
-            return result;
-        }
-
         public static MethodReference MakeCallReference(this MemberReference member, MethodReference reference)
         {
             if (reference.GenericParameters.Count == 0)
@@ -51,7 +44,7 @@ namespace FluentIL.Extensions
             return member.Module.ImportReference(result);
         }
 
-        public static TypeReference MakeCallReference(this MemberReference member, TypeReference reference)
+        private static TypeReference MakeCallReference(this MemberReference member, TypeReference reference)
         {
             if (reference.GenericParameters.Count == 0)
                 return member.Module.ImportReference(reference);

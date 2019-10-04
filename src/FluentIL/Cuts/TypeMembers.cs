@@ -32,7 +32,9 @@ namespace FluentIL
 
         public static Cut Load(this Cut cut, FieldReference field)
         {
-            CheckReference(field);
+            if(!field.IsCallCompatible())
+                throw new ArgumentException($"Uninitialized generic call reference: {field.ToString()}");
+            
             var fieldDef = field.Resolve();
 
             return cut.Write(fieldDef.IsStatic ? OpCodes.Ldsfld : OpCodes.Ldfld, field);
@@ -40,7 +42,9 @@ namespace FluentIL
 
         public static Cut LoadRef(this Cut cut, FieldReference field)
         {
-            CheckReference(field);
+            if (!field.IsCallCompatible())
+                throw new ArgumentException($"Uninitialized generic call reference: {field.ToString()}");
+
             var fieldDef = field.Resolve();
 
             return cut.Write(fieldDef.IsStatic ? OpCodes.Ldsflda : OpCodes.Ldflda, field);
@@ -48,7 +52,9 @@ namespace FluentIL
 
         public static Cut Store(this Cut cut, FieldReference field, PointCut value = null)
         {
-            CheckReference(field);
+            if (!field.IsCallCompatible())
+                throw new ArgumentException($"Uninitialized generic call reference: {field.ToString()}");
+
             var fieldDef = field.Resolve();
 
             return cut
@@ -80,15 +86,6 @@ namespace FluentIL
                     .Here(value)
                     .Write(OpCodes.Starg, par.Resolve());
             }
-        }
-
-        private static void CheckReference(MemberReference member)
-        {
-            if (
-                (member is MethodReference method && method.HasGenericParameters) ||
-                (member.DeclaringType != null && member.DeclaringType.HasGenericParameters)
-                )
-                throw new ArgumentException($"Uninitialized generic call reference: {member.ToString()}");
-        }
+        }        
     }
 }

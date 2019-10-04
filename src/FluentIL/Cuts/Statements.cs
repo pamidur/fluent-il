@@ -1,6 +1,7 @@
 ﻿using FluentIL.Extensions;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using System;
 
 namespace FluentIL
 {
@@ -13,16 +14,18 @@ namespace FluentIL
 
         public static Cut Call(this Cut cut, MethodReference method, PointCut args = null)
         {
-            if (args != null) cut = cut.Here(args);
+            if (!method.IsCallCompatible())
+                throw new ArgumentException($"Uninitialized generic call reference: {method.ToString()}");
+            
+            if (args != null) cut = cut.Here(args);           
 
-            var methodRef = cut.Method.MakeCallReference(cut.Import(method));
             var methodDef = method.Resolve();
 
             var code = OpCodes.Call;
             if (methodDef.IsConstructor) code = OpCodes.Newobj;
             else if (methodDef.IsVirtual) code = OpCodes.Callvirt;
 
-            return cut.Write(code, methodRef);
+            return cut.Write(code, method);
         }
 
         public static Cut IfEqual(this Cut pc, PointCut left, PointCut right, PointCut pos = null, PointCut neg = null)

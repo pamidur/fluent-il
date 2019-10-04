@@ -23,12 +23,12 @@ namespace FluentIL
             .Write(OpCodes.Ldftn, method);
 
         public static Cut TypeOf(this Cut cut, TypeReference type) => cut
-            .Write(OpCodes.Ldtoken, cut.Method.MakeCallReference(type))
+            .Write(OpCodes.Ldtoken, type)
             .Write(OpCodes.Call, GetTypeFromHandleMethod_Ref(cut));
 
         public static Cut MethodOf(this Cut cut, MethodReference method) => cut
             .Write(OpCodes.Ldtoken, method)
-            .Write(OpCodes.Ldtoken, method.DeclaringType.MakeCallReference(method.DeclaringType))
+            .Write(OpCodes.Ldtoken, method.DeclaringType)
             .Write(OpCodes.Call, GetMethodFromHandleMethod_Ref(cut));
 
         public static Cut Value(this Cut pc, object value)
