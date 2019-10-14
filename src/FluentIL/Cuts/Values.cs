@@ -8,7 +8,7 @@ using System.Reflection;
 namespace FluentIL
 {
     public static class Values
-    {       
+    {
 
         public static Cut Pop(this Cut pc) => pc
             .Write(OpCodes.Pop);
@@ -180,7 +180,7 @@ namespace FluentIL
         {
             var val = argument.Value;
 
-            if (val.GetType().IsArray)
+            if (val != null && val.GetType().IsArray)
                 pc = pc.CreateArray(
                     argument.Type.GetElementType(),
                     ((Array)val).Cast<object>().Select<object, PointCut>(v => il => il.Value(v)).ToArray()
