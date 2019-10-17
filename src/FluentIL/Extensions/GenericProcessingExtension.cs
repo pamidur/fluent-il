@@ -31,18 +31,7 @@ namespace FluentIL.Extensions
             }
 
             return reference;
-        }
-
-        public static MethodReference MakeCallReference(this MemberReference member, MethodReference reference)
-        {
-            if (reference.GenericParameters.Count == 0)
-                return member.Module.ImportReference(reference);
-
-            var result = new GenericInstanceMethod(reference);
-            var args = reference.GenericParameters.Select(gp => member.GetMatchedParam(gp) ?? gp).ToList();
-            args.ForEach(result.GenericArguments.Add);
-            return member.Module.ImportReference(result);
-        }
+        }     
 
         private static TypeReference MakeCallReference(this MemberReference member, TypeReference reference)
         {

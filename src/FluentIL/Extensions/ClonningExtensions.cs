@@ -60,12 +60,7 @@ namespace FluentIL.Extensions
         {
             var ngp = new GenericParameter(gparam.Name, target)
             {
-                HasDefaultConstructorConstraint = gparam.HasDefaultConstructorConstraint,
-                HasReferenceTypeConstraint = gparam.HasReferenceTypeConstraint,
-                HasNotNullableValueTypeConstraint = gparam.HasNotNullableValueTypeConstraint,
-                IsNonVariant = gparam.IsNonVariant,
-                IsContravariant = gparam.IsContravariant,
-                IsCovariant = gparam.IsCovariant,
+                Attributes = gparam.Attributes,                
                 //Namespace = gparam.Namespace,
                 IsValueType = gparam.IsValueType,
                 //MetadataToken = gparam.MetadataToken
