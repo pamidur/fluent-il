@@ -50,6 +50,7 @@ namespace FluentIL
         public static void Instead(this MethodBody body, PointCut action)
         {
             body.Instructions.Clear();
+            body.Variables.Clear();
 
             new Cut(body, true, true)
                 .Here(action);
