@@ -7,7 +7,7 @@ namespace FluentIL.Extensions
 {
     public static class GenericProcessingExtension
     {
-        public static MethodReference MakeGenericReference(
+        private static MethodReference MakeGenericReference(
                                   this MethodDefinition self,
                                   TypeReference context)
         {
@@ -31,7 +31,7 @@ namespace FluentIL.Extensions
             }
 
             return reference;
-        }     
+        }
 
         private static TypeReference MakeCallReference(this MemberReference member, TypeReference reference)
         {
@@ -43,7 +43,7 @@ namespace FluentIL.Extensions
             return member.ParametrizeGenericInstance(reference.Resolve().MakeGenericInstanceType(args));
         }
 
-        public static GenericParameter GetMatchedParam(this MemberReference provider, GenericParameter original)
+        private static GenericParameter GetMatchedParam(this MemberReference provider, GenericParameter original)
         {
             if (provider is MethodReference)
             {
@@ -59,7 +59,7 @@ namespace FluentIL.Extensions
             throw new Exception($"Non supported generic provider {provider.GetType()}");
         }
 
-        public static GenericInstanceType ParametrizeGenericInstance(this MemberReference member, GenericInstanceType generic)
+        private static GenericInstanceType ParametrizeGenericInstance(this MemberReference member, GenericInstanceType generic)
         {
             if (!generic.ContainsGenericParameter)
                 return generic;
@@ -80,7 +80,7 @@ namespace FluentIL.Extensions
             return param;
         }
 
-        public static TypeReference ResolveGenericType(this MemberReference member, TypeReference param)
+        private static TypeReference ResolveGenericType(this MemberReference member, TypeReference param)
         {
             if (!param.ContainsGenericParameter)
                 throw new Exception($"{param} is not generic!");
