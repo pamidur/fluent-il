@@ -37,15 +37,14 @@ namespace FluentIL.Extensions
             return new FieldReference(definition.Name, definition.FieldType, ownerTypeRef);
         }
 
-        public static MethodReference MakeReference(this MethodDefinition definition, TypeReference ownerTypeRef)
+        public static MethodReference MakeReference(this MethodReference definition, TypeReference ownerTypeRef)
         {
             if (!ownerTypeRef.IsCallCompatible())
                 throw new Exception();
-            
+
+
             var reference = new MethodReference(definition.Name, definition.ReturnType, ownerTypeRef);
-         
-            foreach (var par in definition.Parameters)
-                reference.Parameters.Add(par);            
+
 
             reference.HasThis = definition.HasThis;
             reference.ExplicitThis = definition.ExplicitThis;
@@ -53,6 +52,13 @@ namespace FluentIL.Extensions
 
             foreach (var gpar in definition.GenericParameters)
                 reference.GenericParameters.Add(gpar.Clone(reference));
+
+            foreach (var par in definition.Parameters)
+                reference.Parameters.Add(par);
+
+
+            //reference = new DefaultMetadataImporter(ownerTypeRef.Module).ImportReference(definition, reference);
+            //reference.DeclaringType = ownerTypeRef;
 
             //if (definition.HasGenericParameters)
             //    reference = reference.MakeGenericInstanceMethod(definition.GenericParameters.ToArray());

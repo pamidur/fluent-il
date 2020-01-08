@@ -1,118 +1,57 @@
-﻿using Mono.Cecil;
-using Mono.Cecil.Rocks;
-using System;
-using System.Linq;
+﻿//using Mono.Cecil;
+//using Mono.Cecil.Rocks;
+//using System;
+//using System.Linq;
 
-namespace FluentIL.Extensions
-{
-    public static class GenericProcessingExtension
-    {
-        private static MethodReference MakeGenericReference(
-                                  this MethodDefinition self,
-                                  TypeReference context)
-        {
-            var reference = new MethodReference(
-                self.Name,
-                self.ReturnType,
-                context.MakeCallReference(self.DeclaringType))
-            {
-                HasThis = self.HasThis,
-                ExplicitThis = self.ExplicitThis,
-                CallingConvention = self.CallingConvention
-            };
-            foreach (var parameter in self.Parameters)
-            {
-                reference.Parameters.Add(new ParameterDefinition(parameter.ParameterType));
-            }
+//namespace FluentIL.Extensions
+//{
+//    public static class GenericProcessingExtension
+//    {
 
-            foreach (var genericParam in self.GenericParameters)
-            {
-                reference.GenericParameters.Add(genericParam.Clone(self));
-            }
+//        public static TypeReference ResolveIfGeneric(this MemberReference member, TypeReference param)
+//        {
+//            if (param.ContainsGenericParameter)
+//            {
+//                var gparam = member.ResolveGenericType(param);
+//                return gparam;
+//            }
 
-            return reference;
-        }
+//            return param;
+//        }
 
-        private static TypeReference MakeCallReference(this MemberReference member, TypeReference reference)
-        {
-            if (reference.GenericParameters.Count == 0)
-                return member.Module.ImportReference(reference);
+//        private static TypeReference ResolveGenericType(this MemberReference member, TypeReference param)
+//        {
+//            if (!param.ContainsGenericParameter)
+//                throw new Exception($"{param} is not generic!");
 
-            var args = reference.GenericParameters.Select(gp => member.GetMatchedParam(gp) ?? gp).ToArray();
+//            if (param.IsByReference && param.ContainsGenericParameter)
+//                return new ByReferenceType(member.ResolveGenericType(param.GetElementType()));
 
-            return member.ParametrizeGenericInstance(reference.Resolve().MakeGenericInstanceType(args));
-        }
+//            if (param.IsGenericInstance)
+//            {
+//                var nestedGeneric = (GenericInstanceType)param;
+//                var args = nestedGeneric.GenericArguments.Select(ga => member.ResolveIfGeneric(ga)).ToArray();
+//                return param.Module.ImportReference(param.Resolve()).MakeGenericInstanceType(args);
+//            }
 
-        private static GenericParameter GetMatchedParam(this MemberReference provider, GenericParameter original)
-        {
-            if (provider is MethodReference)
-            {
-                var match = ((MethodReference)provider).GenericParameters.FirstOrDefault(gp => gp.Name == original.Name);
-                match = match ?? provider.DeclaringType.GetMatchedParam(original);
-                return match;
-            }
-            else if (provider is TypeReference)
-            {
-                return ((TypeReference)provider).GenericParameters.FirstOrDefault(gp => gp.Name == original.Name);
-            }
+//            if (!(param is GenericParameter gparam))
+//                throw new Exception("Cannot resolve generic parameter");
 
-            throw new Exception($"Non supported generic provider {provider.GetType()}");
-        }
+//            object resolvedMember = ((dynamic)member).Resolve();
+//            object resolvedOwner = ((dynamic)gparam.Owner).Resolve();
 
-        private static GenericInstanceType ParametrizeGenericInstance(this MemberReference member, GenericInstanceType generic)
-        {
-            if (!generic.ContainsGenericParameter)
-                return generic;
-
-            var args = generic.GenericArguments.Select(ga => member.ResolveIfGeneric(ga)).ToArray();
-
-            return generic.Resolve().MakeGenericInstanceType(args);
-        }
-
-        public static TypeReference ResolveIfGeneric(this MemberReference member, TypeReference param)
-        {
-            if (param.ContainsGenericParameter)
-            {
-                var gparam = member.ResolveGenericType(param);
-                return gparam;
-            }
-
-            return param;
-        }
-
-        private static TypeReference ResolveGenericType(this MemberReference member, TypeReference param)
-        {
-            if (!param.ContainsGenericParameter)
-                throw new Exception($"{param} is not generic!");
-
-            if (param.IsByReference && param.ContainsGenericParameter)
-                return new ByReferenceType(member.ResolveGenericType(param.GetElementType()));
-
-            if (param.IsGenericInstance)
-            {
-                var nestedGeneric = (GenericInstanceType)param;
-                var args = nestedGeneric.GenericArguments.Select(ga => member.ResolveIfGeneric(ga)).ToArray();
-                return param.Module.ImportReference(param.Resolve()).MakeGenericInstanceType(args);
-            }
-
-            if (!(param is GenericParameter gparam))
-                throw new Exception("Cannot resolve generic parameter");
-
-            object resolvedMember = ((dynamic)member).Resolve();
-            object resolvedOwner = ((dynamic)gparam.Owner).Resolve();
-
-            if (resolvedOwner == resolvedMember)
-            {
-                if (member is IGenericInstance)
-                    return (member as IGenericInstance).GenericArguments[gparam.Position];
-                else
-                    return ((IGenericParameterProvider)member).GenericParameters[gparam.Position];
-            }
-            else if (member.DeclaringType != null)
-                return member.DeclaringType.ResolveGenericType(gparam);
-            //else 
-            else
-                throw new Exception("Cannot resolve generic parameter");
-        }
-    }
-}
+//            if (resolvedOwner == resolvedMember)
+//            {
+//                if (member is IGenericInstance)
+//                    return (member as IGenericInstance).GenericArguments[gparam.Position];
+//                else
+//                    return ((IGenericParameterProvider)member).GenericParameters[gparam.Position];
+//            }
+//            else if (member.DeclaringType != null)
+//                return member.DeclaringType.ResolveGenericType(gparam);
+//            //else 
+//            else
+//                throw new Exception("Cannot resolve generic parameter");
+//        }
+//    }
+//}

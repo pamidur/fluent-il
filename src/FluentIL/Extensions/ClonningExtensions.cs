@@ -5,33 +5,6 @@ namespace FluentIL.Extensions
 {
     public static class ClonningExtensions
     {
-        public static MethodDefinition Clone(this MethodDefinition origin, TypeDefinition target)
-        {
-            var method = new MethodDefinition(origin.Name,
-               origin.Attributes & ~MethodAttributes.RTSpecialName,
-               origin.ReturnType);
-
-            foreach (var gparam in origin.GenericParameters)
-                method.GenericParameters.Add(gparam.Clone(method));
-
-            if (origin.ReturnType.IsGenericParameter && ((GenericParameter)origin.ReturnType).Owner == origin)
-                method.ReturnType = method.GenericParameters[origin.GenericParameters.IndexOf((GenericParameter)origin.ReturnType)];
-
-            if (origin.IsSpecialName)
-                method.IsSpecialName = true;
-
-            foreach (var parameter in origin.Parameters)
-            {
-                var paramType = parameter.ParameterType;
-                if (paramType.IsGenericParameter && ((GenericParameter)paramType).Owner == origin)
-                    paramType = method.GenericParameters[origin.GenericParameters.IndexOf((GenericParameter)paramType)];
-
-                method.Parameters.Add(new ParameterDefinition(parameter.Name, parameter.Attributes, paramType));
-            }
-
-            return method;
-        }
-
         public static T Clone<T>(this T reference, IGenericParameterProvider genericProvider)
             where T : TypeReference
         {
@@ -39,7 +12,13 @@ namespace FluentIL.Extensions
 
             if (reference is GenericParameter gp) newtr = gp.CloneGenericParam(genericProvider);
             else if (reference is ByReferenceType byref) newtr = new ByReferenceType(byref.ElementType.Clone(genericProvider));
-            else if (reference is GenericInstanceType) throw new Exception();
+            else if (reference is GenericInstanceType git)
+            {
+                var newgitr = new GenericInstanceType(git.ElementType.Clone(genericProvider));
+                foreach (var ga in git.GenericArguments)
+                    newgitr.GenericArguments.Add(ga.Clone(newgitr));
+                newtr = newgitr;
+            }
             else if (reference is SentinelType st) newtr = new SentinelType(st.Clone(genericProvider));
             else if (reference is ArrayType at) newtr = new ArrayType(at.ElementType.Clone(genericProvider));
             else if (reference is FunctionPointerType) throw new Exception();
@@ -48,7 +27,10 @@ namespace FluentIL.Extensions
             else if (reference is PointerType) throw new Exception();
             else if (reference is PinnedType) throw new Exception();
             else if (reference is PointerType) throw new Exception();
-            else newtr = new TypeReference(reference.Namespace, reference.Name, genericProvider.Module, reference.Scope, reference.IsValueType);
+            else newtr = new TypeReference(reference.Namespace, reference.Name, genericProvider.Module, reference.Scope, reference.IsValueType)
+            {
+                DeclaringType = reference.DeclaringType?.Clone(genericProvider)
+            };
 
             foreach (var subgp in reference.GenericParameters)
                 newtr.GenericParameters.Add(subgp.Clone(newtr));
@@ -60,14 +42,14 @@ namespace FluentIL.Extensions
         {
             var ngp = new GenericParameter(gparam.Name, target)
             {
-                Attributes = gparam.Attributes,                
+                Attributes = gparam.Attributes,
                 //Namespace = gparam.Namespace,
                 IsValueType = gparam.IsValueType,
                 //MetadataToken = gparam.MetadataToken
             };
 
             foreach (var gc in gparam.Constraints)
-                ngp.Constraints.Add(gc.Clone(ngp));
+                ngp.Constraints.Add(new GenericParameterConstraint(gc.ConstraintType.Clone(ngp)));
 
             return ngp;
         }

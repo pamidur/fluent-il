@@ -47,25 +47,6 @@ namespace FluentIL.Extensions
             return !m.IsAddOn && !m.IsRemoveOn && !m.IsSetter && !m.IsGetter && !m.IsConstructor;
         }
 
-        public static bool IsImplementationOf(this MethodDefinition m, MethodReference ifaceMethod)
-        {
-            if (m.IsExplicitImplementationOf(ifaceMethod))
-                return true;
-
-            var ifaceMethodDef = ifaceMethod.Resolve();
-
-            if (m.Name == ifaceMethod.Name && m.Parameters.Count == ifaceMethodDef.Parameters.Count)
-            {
-                for (int i = 0; i < m.Parameters.Count; i++)
-                    if (!m.Parameters[i].ParameterType.Match(ifaceMethod.ResolveGenericType(ifaceMethodDef.Parameters[i].ParameterType)))
-                        return false;
-
-                return true;
-            }
-
-            return false;
-        }
-
         public static bool IsExplicitImplementationOf(this MethodDefinition m, MethodReference ifaceMethod)
         {
             if (m.Overrides.Any(o => o.FullName == ifaceMethod.FullName))
