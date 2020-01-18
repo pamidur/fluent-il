@@ -12,14 +12,14 @@ namespace FluentIL.Extensions
                 return !typeRef.HasGenericParameters;
 
             if (member is MethodReference methodRef)
-                return !methodRef.HasGenericParameters && 
+                return !methodRef.HasGenericParameters &&
                 methodRef.DeclaringType.IsCallCompatible();
 
             if (member is FieldReference fieldRef)
                 return fieldRef.DeclaringType.IsCallCompatible();
 
-            throw new Exception();
-        }        
+            throw new NotSupportedException($"{member.GetType().Name} is not callable");
+        }
 
         public static TypeReference MakeSelfReference(this TypeDefinition definition)
         {
@@ -32,7 +32,7 @@ namespace FluentIL.Extensions
         public static FieldReference MakeReference(this FieldDefinition definition, TypeReference ownerTypeRef)
         {
             if (!ownerTypeRef.IsCallCompatible())
-                throw new Exception();
+                throw new ArgumentException($"Owner type is not call compatible", nameof(ownerTypeRef));
 
             return new FieldReference(definition.Name, definition.FieldType, ownerTypeRef);
         }
@@ -40,7 +40,7 @@ namespace FluentIL.Extensions
         public static MethodReference MakeReference(this MethodReference definition, TypeReference ownerTypeRef)
         {
             if (!ownerTypeRef.IsCallCompatible())
-                throw new Exception();
+                throw new ArgumentException($"Owner type is not call compatible", nameof(ownerTypeRef));
 
             var reference = new MethodReference(definition.Name, definition.ReturnType, ownerTypeRef);
 
@@ -60,21 +60,17 @@ namespace FluentIL.Extensions
         public static GenericInstanceMethod MakeGenericInstanceMethod(this MethodReference self, params TypeReference[] arguments)
         {
             if (self == null)
-            {
-                throw new ArgumentNullException("self");
-            }
+                throw new ArgumentNullException(nameof(self));
+
             if (arguments == null)
-            {
-                throw new ArgumentNullException("arguments");
-            }
+                throw new ArgumentNullException(nameof(arguments));
+
             if (arguments.Length == 0)
-            {
-                throw new ArgumentException();
-            }
+                throw new ArgumentException("Expected non-zero arguments");
+
             if (self.GenericParameters.Count != arguments.Length)
-            {
-                throw new ArgumentException();
-            }
+                throw new ArgumentException("Expected arguments == method.genericparams.count");
+
             var genericInstanceMethod = new GenericInstanceMethod(self);
             foreach (TypeReference item in arguments)
             {

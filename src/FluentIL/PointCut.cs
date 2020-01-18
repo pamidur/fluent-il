@@ -26,7 +26,7 @@ namespace FluentIL
 
         public Cut(MethodBody body, bool entry, bool exit)
         {
-            if (!entry && !exit) throw new ArgumentException();
+            if (!entry && !exit) throw new ArgumentException("Should be either entry or exit");
 
             _body = body;
             _entry = entry;
@@ -155,7 +155,7 @@ namespace FluentIL
             if (refs.Any())
             {
                 if (next == null)
-                    throw new InvalidOperationException();
+                    throw new InvalidOperationException("Cannot redirect to non existing instruction");
 
                 foreach (var rref in refs)
                     rref.Operand = next;

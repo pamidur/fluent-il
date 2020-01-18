@@ -21,12 +21,12 @@ namespace FluentIL.Extensions
             }
             else if (reference is SentinelType st) newtr = new SentinelType(st.Clone(genericProvider));
             else if (reference is ArrayType at) newtr = new ArrayType(at.ElementType.Clone(genericProvider));
-            else if (reference is FunctionPointerType) throw new Exception();
-            else if (reference is OptionalModifierType) throw new Exception();
-            else if (reference is RequiredModifierType) throw new Exception();
-            else if (reference is PointerType) throw new Exception();
-            else if (reference is PinnedType) throw new Exception();
-            else if (reference is PointerType) throw new Exception();
+            else if (reference is FunctionPointerType) throw new NotSupportedException($"Cannot clone {reference.GetType().Name}");
+            else if (reference is OptionalModifierType) throw new NotSupportedException($"Cannot clone {reference.GetType().Name}");
+            else if (reference is RequiredModifierType) throw new NotSupportedException($"Cannot clone {reference.GetType().Name}");
+            else if (reference is PointerType) throw new NotSupportedException($"Cannot clone {reference.GetType().Name}");
+            else if (reference is PinnedType) throw new NotSupportedException($"Cannot clone {reference.GetType().Name}");
+            else if (reference is PointerType) throw new NotSupportedException($"Cannot clone {reference.GetType().Name}");
             else newtr = new TypeReference(reference.Namespace, reference.Name, genericProvider.Module, reference.Scope, reference.IsValueType)
             {
                 DeclaringType = reference.DeclaringType?.Clone(genericProvider)
