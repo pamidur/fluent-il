@@ -34,7 +34,7 @@ namespace FluentIL.Extensions
             if (!ownerTypeRef.IsCallCompatible())
                 throw new ArgumentException($"Owner type is not call compatible", nameof(ownerTypeRef));
 
-            return new FieldReference(definition.Name, definition.FieldType, ownerTypeRef);
+            return new FieldReference(definition.Name, ownerTypeRef.Module.ImportReference(definition.FieldType), ownerTypeRef);
         }
 
         public static MethodReference MakeReference(this MethodReference definition, TypeReference ownerTypeRef)
@@ -42,7 +42,7 @@ namespace FluentIL.Extensions
             if (!ownerTypeRef.IsCallCompatible())
                 throw new ArgumentException($"Owner type is not call compatible", nameof(ownerTypeRef));
 
-            var reference = new MethodReference(definition.Name, definition.ReturnType, ownerTypeRef);
+            var reference = new MethodReference(definition.Name, ownerTypeRef.Module.ImportReference(definition.ReturnType), ownerTypeRef);
 
             reference.HasThis = definition.HasThis;
             reference.ExplicitThis = definition.ExplicitThis;
