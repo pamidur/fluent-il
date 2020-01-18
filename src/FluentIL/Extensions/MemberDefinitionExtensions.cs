@@ -42,9 +42,7 @@ namespace FluentIL.Extensions
             if (!ownerTypeRef.IsCallCompatible())
                 throw new Exception();
 
-
             var reference = new MethodReference(definition.Name, definition.ReturnType, ownerTypeRef);
-
 
             reference.HasThis = definition.HasThis;
             reference.ExplicitThis = definition.ExplicitThis;
@@ -56,21 +54,11 @@ namespace FluentIL.Extensions
             foreach (var par in definition.Parameters)
                 reference.Parameters.Add(par);
 
-
-            //reference = new DefaultMetadataImporter(ownerTypeRef.Module).ImportReference(definition, reference);
-            //reference.DeclaringType = ownerTypeRef;
-
-            //if (definition.HasGenericParameters)
-            //    reference = reference.MakeGenericInstanceMethod(definition.GenericParameters.ToArray());
-
             return reference;
         }
 
         public static GenericInstanceMethod MakeGenericInstanceMethod(this MethodReference self, params TypeReference[] arguments)
         {
-            if (self.IsDefinition)
-                throw new Exception();
-
             if (self == null)
             {
                 throw new ArgumentNullException("self");
