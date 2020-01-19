@@ -54,6 +54,7 @@ namespace FluentIL
                 case MetadataType.Byte: return OpCodes.Ldelem_U1;
                 case MetadataType.SByte: return OpCodes.Ldelem_I1;
                 case MetadataType.Boolean: return OpCodes.Ldelem_I1;
+                case MetadataType.String: return OpCodes.Ldelem_Ref;
                     //case MetadataType.GenericInstance: return OpCodes.Stelem_Any;
             }
 
@@ -78,6 +79,7 @@ namespace FluentIL
                 case MetadataType.Byte: return OpCodes.Stelem_I1;
                 case MetadataType.SByte: return OpCodes.Stelem_I1;
                 case MetadataType.Boolean: return OpCodes.Stelem_I1;
+                case MetadataType.String: return OpCodes.Stelem_Ref;
                     //case MetadataType.GenericInstance: return OpCodes.Stelem_Any;
             }
 
