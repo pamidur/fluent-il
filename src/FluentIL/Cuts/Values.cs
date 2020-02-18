@@ -46,8 +46,6 @@ namespace FluentIL
                 return Primitive(pc, value);
             else if (value is string str)
                 return pc.Write(OpCodes.Ldstr, str);
-            //else if (valueType.IsArray)
-            //    CreateArray(_typeSystem.Import(valueType.GetElementType()), il => ((Array)value).Cast<object>().Select(Value).ToArray());
             else
                 throw new NotSupportedException(valueType.ToString());
         }
@@ -58,7 +56,9 @@ namespace FluentIL
 
             switch (value)
             {
+#pragma warning disable S2583 // Conditionally executed code should be reachable
                 case bool bo: return pc.Write(bo ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
+#pragma warning restore S2583 // Conditionally executed code should be reachable
                 case long l: return pc.Write(OpCodes.Ldc_I8, l);
                 case ulong ul: return pc.Write(OpCodes.Ldc_I8, unchecked((long)ul));
                 case double d: return pc.Write(OpCodes.Ldc_R8, d);
@@ -111,7 +111,7 @@ namespace FluentIL
                     return cut;
             }
 
-            throw new Exception($"Cannot cast '{typeOnStack}' to '{expectedType}'");
+            throw new InvalidCastException($"Cannot cast '{typeOnStack}' to '{expectedType}'");
         }
 
         private static Cut StoreByReference(Cut pc, TypeReference elemType)

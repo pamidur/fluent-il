@@ -29,7 +29,7 @@ namespace FluentIL.Resolvers
                 }
                 catch (System.BadImageFormatException)
                 {
-                    continue;
+                    //skip assemblies we cannot load
                 }
             }
 

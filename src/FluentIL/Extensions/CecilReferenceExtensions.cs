@@ -59,7 +59,7 @@ namespace FluentIL.Extensions
         public static TypeReference GetEnumType(this TypeDefinition enumtype)
         {
             if (!enumtype.IsEnum)
-                throw new Exception("Type is not enum");
+                throw new InvalidOperationException($"{enumtype.Name} is not enum");
 
             return enumtype.Fields.First(f => f.Name == "value__").FieldType;
         }

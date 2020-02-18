@@ -16,8 +16,8 @@ namespace FluentIL
         {
             if (!method.IsCallCompatible())
                 throw new ArgumentException($"Uninitialized generic call reference: {method.ToString()}");
-            
-            if (args != null) cut = cut.Here(args);           
+
+            if (args != null) cut = cut.Here(args);
 
             var methodDef = method.Resolve();
 
@@ -30,16 +30,16 @@ namespace FluentIL
 
         public static Cut IfEqual(this Cut pc, PointCut left, PointCut right, PointCut pos = null, PointCut neg = null)
         {
-            if (pos == null && neg == null)
-                return pc;
+            if (pos != null && neg != null)
+                return Compare(pc, left, right, OpCodes.Ceq, pos, neg);
 
-            if (pos != null && neg == null)
+            if (pos != null)
                 return Compare(pc, left, right, OpCodes.Ceq, OpCodes.Brfalse, pos);
 
-            if (pos == null && neg != null)
+            if (neg != null)
                 return Compare(pc, left, right, OpCodes.Ceq, OpCodes.Brtrue, neg);
 
-            return Compare(pc, left, right, OpCodes.Ceq, pos, neg);
+            return pc;
         }
 
         private static Cut Compare(Cut pc, PointCut left, PointCut right, OpCode cmp, PointCut pos, PointCut neg)

@@ -26,11 +26,11 @@ namespace FluentIL.Logging
             {
                 case RuleSeverity.Error: WriteError(rule.Id, location, message); IsErrorThrown = true; break;
                 case RuleSeverity.Warning: WriteWarning(rule.Id, location, message); break;
-                case RuleSeverity.Info: WriteInfo(rule.Id, location, message); break;
+                case RuleSeverity.Info: WriteInfo(location, message); break;
             }
         }
 
-        private void WriteInfo(string id, string location, string message)
+        private void WriteInfo(string location, string message)
         {
             Console.WriteLine($"{location}: {message}");
         }

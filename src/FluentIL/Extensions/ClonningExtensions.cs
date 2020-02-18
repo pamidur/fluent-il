@@ -8,8 +8,7 @@ namespace FluentIL.Extensions
         public static T Clone<T>(this T reference, IGenericParameterProvider genericProvider)
             where T : TypeReference
         {
-            TypeReference newtr = null;
-
+            TypeReference newtr;
             if (reference is GenericParameter gp) newtr = gp.CloneGenericParam(genericProvider);
             else if (reference is ByReferenceType byref) newtr = new ByReferenceType(byref.ElementType.Clone(genericProvider));
             else if (reference is GenericInstanceType git)
@@ -26,7 +25,6 @@ namespace FluentIL.Extensions
             else if (reference is RequiredModifierType) throw new NotSupportedException($"Cannot clone {reference.GetType().Name}");
             else if (reference is PointerType) throw new NotSupportedException($"Cannot clone {reference.GetType().Name}");
             else if (reference is PinnedType) throw new NotSupportedException($"Cannot clone {reference.GetType().Name}");
-            else if (reference is PointerType) throw new NotSupportedException($"Cannot clone {reference.GetType().Name}");
             else newtr = new TypeReference(reference.Namespace, reference.Name, genericProvider.Module, reference.Scope, reference.IsValueType)
             {
                 DeclaringType = reference.DeclaringType?.Clone(genericProvider)

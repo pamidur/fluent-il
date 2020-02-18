@@ -6,7 +6,7 @@ namespace FluentIL.Resolvers
 {
     public class CachedAssemblyResolver : BaseAssemblyResolver
     {
-        private Dictionary<string, AssemblyDefinition> _cache = new Dictionary<string, AssemblyDefinition>();
+        private readonly Dictionary<string, AssemblyDefinition> _cache = new Dictionary<string, AssemblyDefinition>();
 
         public override AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
         {

@@ -10,13 +10,13 @@ namespace FluentIL
     {
         public static void BeforeInstruction(this MethodBody body, Instruction instruction, PointCut action)
         {
-            var cut = new Cut(body, instruction)
+            new Cut(body, instruction)
                 .Prev()
                 .Here(action);
         }
         public static void AfterEntry(this MethodBody body, PointCut action)
         {
-            var cut = new Cut(body, GetCodeStart(body))
+            new Cut(body, GetCodeStart(body))
                 .Prev()
                 .Here(action);
         }
@@ -79,7 +79,7 @@ namespace FluentIL
                         || ((MethodReference)i.Operand).DeclaringType.Match(body.Method.DeclaringType)));
 
             if (point == null)
-                throw new Exception("Cannot find base class ctor call");
+                throw new InvalidOperationException("Cannot find base class ctor call");
 
             return point.Next;
         }

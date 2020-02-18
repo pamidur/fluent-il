@@ -11,7 +11,7 @@ namespace FluentIL
     {
         protected readonly ILogger _log;
 
-        public PatcherBase(
+        protected PatcherBase(
             ILogger logger)
         {
             _log = logger;
@@ -49,7 +49,7 @@ namespace FluentIL
 
                     if (verbose) _log.Log(GenericInfoRule, "Assembly has been patched.");
 
-                    WriteAssembly(assembly, assemblyFile, pdbPresent, verbose);
+                    WriteAssembly(assembly, pdbPresent, verbose);
                 }
                 else if (verbose) _log.Log(GenericInfoRule, "No patching required.");
             }
@@ -78,7 +78,7 @@ namespace FluentIL
                 {
                     ReadingMode = ReadingMode.Deferred
                 });
-            var name = assembly.Name;
+
             assembly.Dispose();
 
             assembly = resolver.Resolve(assembly.Name, new ReaderParameters
@@ -94,16 +94,13 @@ namespace FluentIL
             return assembly;
         }
 
-        private void WriteAssembly(AssemblyDefinition assembly, string path, bool writeSymbols, bool verbose)
+        private void WriteAssembly(AssemblyDefinition assembly, bool writeSymbols, bool verbose)
         {
             var param = new WriterParameters();
 
             if (writeSymbols)
             {
                 param.WriteSymbols = true;
-
-                //if (assembly.MainModule.SymbolReader != null)
-                //    param.SymbolWriterProvider = assembly.MainModule.SymbolReader.GetWriterProvider();
             }
 
             assembly.Write(param);
@@ -112,7 +109,6 @@ namespace FluentIL
                 assembly.MainModule.SymbolReader.Dispose();
 
             assembly.Dispose();
-            assembly = null;
 
             if (verbose) _log.Log(GenericInfoRule, "Assembly has been written.");
         }

@@ -10,7 +10,7 @@ namespace FluentIL
 
     public static class CutEvents
     {
-        public static Action<MethodBody> OnModify = m => { };
+        public static Action<MethodBody> OnModify { get; set; } = m => { };
     }
 
     public struct Cut

@@ -16,19 +16,14 @@ namespace FluentIL
         public static Cut This(this Cut cut)
         {
             if (cut.Method.HasThis) return cut.Write(OpCodes.Ldarg_0);
-            else throw new Exception("Attempt to load 'this' on static method.");
-        }
+            else throw new InvalidOperationException("Attempt to load 'this' on static method.");
+        }       
 
         public static Cut Load(this Cut cut, VariableDefinition variable) => cut
             .Write(OpCodes.Ldloc, variable);
 
-        public static Cut LoadRef(this Cut cut, VariableDefinition variable) => cut
-            .Write(OpCodes.Ldloca, variable);
-
-        public static Cut Store(this Cut cut, VariableDefinition variable, PointCut value = null) => cut
-            .Here(value)
-            .Write(OpCodes.Stloc, variable);
-
+        public static Cut Load(this Cut cut, ParameterReference par) => cut
+            .Write(OpCodes.Ldarg, par.Resolve());
 
         public static Cut Load(this Cut cut, FieldReference field)
         {
@@ -39,6 +34,12 @@ namespace FluentIL
 
             return cut.Write(fieldDef.IsStatic ? OpCodes.Ldsfld : OpCodes.Ldfld, field);
         }
+
+        public static Cut LoadRef(this Cut cut, VariableDefinition variable) => cut
+            .Write(OpCodes.Ldloca, variable);
+
+        public static Cut LoadRef(this Cut cut, ParameterReference par) => cut
+            .Write(OpCodes.Ldarga, par.Resolve());
 
         public static Cut LoadRef(this Cut cut, FieldReference field)
         {
@@ -62,15 +63,9 @@ namespace FluentIL
                 .Write(fieldDef.IsStatic ? OpCodes.Stsfld : OpCodes.Stfld, field);
         }
 
-        public static Cut Load(this Cut cut, ParameterReference par)
-        {
-            return cut.Write(OpCodes.Ldarg, par.Resolve());
-        }
-
-        public static Cut LoadRef(this Cut cut, ParameterReference par)
-        {
-            return cut.Write(OpCodes.Ldarga, par.Resolve());
-        }
+        public static Cut Store(this Cut cut, VariableDefinition variable, PointCut value = null) => cut
+           .Here(value)
+           .Write(OpCodes.Stloc, variable);
 
         public static Cut Store(this Cut cut, ParameterReference par, PointCut value = null)
         {
