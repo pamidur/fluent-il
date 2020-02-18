@@ -1,4 +1,5 @@
 ﻿using Mono.Cecil;
+using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -53,6 +54,14 @@ namespace FluentIL.Extensions
                 return true;
 
             return false;
-        }        
+        }     
+        
+        public static TypeReference GetEnumType(this TypeDefinition enumtype)
+        {
+            if (!enumtype.IsEnum)
+                throw new Exception("Type is not enum");
+
+            return enumtype.Fields.First(f => f.Name == "value__").FieldType;
+        }
     }
 }

@@ -64,6 +64,13 @@ namespace FluentIL
 
         private static OpCode GetStoreOpcode(TypeReference elementType)
         {
+            if(elementType.IsValueType && !elementType.IsPrimitive)
+            {
+                var r = elementType.Resolve();
+                if (r.IsEnum)
+                    elementType = r.GetEnumType();
+            }
+
             switch (elementType.MetadataType)
             {
                 case MetadataType.Class: return OpCodes.Stelem_Ref;
