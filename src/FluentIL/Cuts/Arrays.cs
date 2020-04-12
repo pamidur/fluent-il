@@ -57,7 +57,7 @@ namespace FluentIL
                 case MetadataType.String: return OpCodes.Ldelem_Ref;
             }
 
-            throw new NotSupportedException($"No instruction for {elementType.MetadataType.ToString()}");
+            throw new NotSupportedException($"No instruction for {elementType.MetadataType}");
         }
 
 
@@ -88,7 +88,7 @@ namespace FluentIL
                 case MetadataType.String: return OpCodes.Stelem_Ref;
             }
 
-            throw new NotSupportedException($"No instruction for {elementType.MetadataType.ToString()}");
+            throw new NotSupportedException($"No instruction for {elementType.MetadataType}");
         }
     }
 }

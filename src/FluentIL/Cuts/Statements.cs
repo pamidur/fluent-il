@@ -15,7 +15,7 @@ namespace FluentIL
         public static Cut Call(this Cut cut, MethodReference method, PointCut args = null)
         {
             if (!method.IsCallCompatible())
-                throw new ArgumentException($"Uninitialized generic call reference: {method.ToString()}");
+                throw new ArgumentException($"Uninitialized generic call reference: {method}");
 
             if (args != null) cut = cut.Here(args);
 

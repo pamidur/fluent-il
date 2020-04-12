@@ -142,7 +142,7 @@ namespace FluentIL
                 case MetadataType.IntPtr: return pc.Write(OpCodes.Stind_I);
             }
 
-            throw new NotSupportedException($"No instruction for {elemType.MetadataType.ToString()}");
+            throw new NotSupportedException($"No instruction for {elemType.MetadataType}");
         }
 
         private static Cut LoadByReference(Cut pc, TypeReference elemType)
@@ -173,7 +173,7 @@ namespace FluentIL
                 case MetadataType.IntPtr: return pc.Write(OpCodes.Ldind_I);
             }
 
-            throw new NotSupportedException($"No instruction for {elemType.MetadataType.ToString()}");
+            throw new NotSupportedException($"No instruction for {elemType.MetadataType}");
         }
 
         private static Cut AttributeArgument(Cut pc, CustomAttributeArgument argument)

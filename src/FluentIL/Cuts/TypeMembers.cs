@@ -28,7 +28,7 @@ namespace FluentIL
         public static Cut Load(this Cut cut, FieldReference field)
         {
             if(!field.IsCallCompatible())
-                throw new ArgumentException($"Uninitialized generic call reference: {field.ToString()}");
+                throw new ArgumentException($"Uninitialized generic call reference: {field}");
             
             var fieldDef = field.Resolve();
 
@@ -44,7 +44,7 @@ namespace FluentIL
         public static Cut LoadRef(this Cut cut, FieldReference field)
         {
             if (!field.IsCallCompatible())
-                throw new ArgumentException($"Uninitialized generic call reference: {field.ToString()}");
+                throw new ArgumentException($"Uninitialized generic call reference: {field}");
 
             var fieldDef = field.Resolve();
 
@@ -54,7 +54,7 @@ namespace FluentIL
         public static Cut Store(this Cut cut, FieldReference field, PointCut value = null)
         {
             if (!field.IsCallCompatible())
-                throw new ArgumentException($"Uninitialized generic call reference: {field.ToString()}");
+                throw new ArgumentException($"Uninitialized generic call reference: {field}");
 
             var fieldDef = field.Resolve();
 
