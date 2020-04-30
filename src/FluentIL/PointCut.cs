@@ -13,7 +13,7 @@ namespace FluentIL
         public static Action<MethodBody> OnModify { get; set; } = m => { };
     }
 
-    public struct Cut
+    public readonly struct Cut
     {
         private readonly bool _entry;
         private readonly bool _exit;
