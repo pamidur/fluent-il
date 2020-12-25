@@ -73,15 +73,22 @@ namespace FluentIL
                 return body.Method.Body.Instructions.First();
 
             var point = body.Instructions.FirstOrDefault(
-                i => i != null && i.OpCode == OpCodes.Call && i.Operand is MethodReference
-                    && ((MethodReference)i.Operand).Resolve().IsConstructor
-                    && (((MethodReference)i.Operand).DeclaringType.Match(body.Method.DeclaringType.BaseType)
-                        || ((MethodReference)i.Operand).DeclaringType.Match(body.Method.DeclaringType)));
+                i => i != null &&
+                i.OpCode == OpCodes.Call &&
+                i.Operand is MethodReference methodReference &&
+                IsOwnConstructor(methodReference, body.Method.DeclaringType));
 
             if (point == null)
                 throw new InvalidOperationException("Cannot find base class ctor call");
 
             return point.Next;
+        }
+
+        private static bool IsOwnConstructor(MethodReference methodReference, TypeDefinition owner)
+        {
+            var methodDef = methodReference.Resolve();
+            return methodDef.IsConstructor &&
+                (methodDef.DeclaringType.Match(owner.BaseType) || methodDef.DeclaringType.Match(owner));
         }
 
         public static void OnLoadField(this MethodBody body, FieldReference field, PointCut pc, Instruction startingFrom = null)
