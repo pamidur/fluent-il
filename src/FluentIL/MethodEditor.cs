@@ -88,7 +88,7 @@ namespace FluentIL
         {
             var methodDef = methodReference.Resolve();
             return methodDef.IsConstructor &&
-                (methodDef.DeclaringType.Match(owner.BaseType) || methodDef.DeclaringType.Match(owner));
+                (methodDef.DeclaringType.Match(owner) || methodDef.DeclaringType.Match(owner.BaseType?.Resolve()));
         }
 
         public static void OnLoadField(this MethodBody body, FieldReference field, PointCut pc, Instruction startingFrom = null)
