@@ -51,6 +51,7 @@ namespace FluentIL
         {
             body.Instructions.Clear();
             body.Variables.Clear();
+            body.ExceptionHandlers.Clear();            
 
             new Cut(body, true, true)
                 .Here(action);

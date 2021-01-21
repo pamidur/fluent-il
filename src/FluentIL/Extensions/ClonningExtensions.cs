@@ -40,7 +40,7 @@ namespace FluentIL.Extensions
         {
             var ngp = new GenericParameter(gparam.Name, target)
             {
-                Attributes = gparam.Attributes,
+                Attributes = gparam.Attributes,                
                 //Namespace = gparam.Namespace,
                 IsValueType = gparam.IsValueType,
                 //MetadataToken = gparam.MetadataToken
