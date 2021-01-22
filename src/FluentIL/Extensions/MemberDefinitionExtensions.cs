@@ -48,8 +48,7 @@ namespace FluentIL.Extensions
             reference.ExplicitThis = definition.ExplicitThis;
             reference.CallingConvention = definition.CallingConvention;
 
-            foreach (var gpar in definition.GenericParameters)
-                reference.GenericParameters.Add(gpar.Clone(reference));
+            definition.GenericParameters.CloneTo(reference);
 
             foreach (var par in definition.Parameters)
                 reference.Parameters.Add(par);
