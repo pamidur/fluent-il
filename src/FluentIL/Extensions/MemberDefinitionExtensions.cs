@@ -1,11 +1,36 @@
 ﻿using Mono.Cecil;
 using Mono.Cecil.Rocks;
 using System;
+using System.Linq;
 
 namespace FluentIL.Extensions
 {
     public static class MemberDefinitionExtensions
     {
+        public static PropertyDefinition FindProperty(this TypeDefinition typeDef, string name)
+        {
+            var result = typeDef.Properties.FirstOrDefault(p => p.Name == name);
+
+            if(result == null && typeDef.BaseType != null)
+            {
+                result = typeDef.BaseType.Resolve().FindProperty(name);                
+            }
+
+            return result;
+        }
+
+        public static FieldDefinition FindField(this TypeDefinition typeDef, string name)
+        {
+            var result = typeDef.Fields.FirstOrDefault(p => p.Name == name);
+
+            if (result == null && typeDef.BaseType != null)
+            {
+                result = typeDef.BaseType.Resolve().FindField(name);
+            }
+
+            return result;
+        }
+
         public static bool IsCallCompatible(this MemberReference member)
         {
             if (member is TypeReference typeRef)
