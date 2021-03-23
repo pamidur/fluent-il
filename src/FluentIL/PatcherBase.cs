@@ -1,4 +1,4 @@
-﻿using FluentIL.Common;
+using FluentIL.Common;
 using FluentIL.Logging;
 using FluentIL.Resolvers;
 using Mono.Cecil;
@@ -19,13 +19,27 @@ namespace FluentIL
 
         public void Process(string assemblyFile, IReadOnlyList<string> references, bool optimize, bool verbose)
         {
-            var resolver = GetResolver(assemblyFile, references);
             if (_log.IsErrorThrown) return;
 
-            Process(assemblyFile, resolver, optimize, verbose);
+            var pdbPresent = AreSymbolsFound(assemblyFile);
+
+            using (var assembly = GetAssemblyDefinition(assemblyFile, references, verbose, pdbPresent))
+            {
+                Process(assemblyFile, assembly, pdbPresent, optimize, verbose);
+
+                assembly.MainModule.SymbolReader?.Dispose();
+            }
         }
 
-        public void Process(string assemblyFile, IAssemblyResolver resolver, bool optimize, bool verbose)
+        private AssemblyDefinition GetAssemblyDefinition(string assemblyFile, IReadOnlyList<string> references, bool verbose, bool pdbPresent)
+        {
+            using (var resolver = GetResolver(assemblyFile, references))
+            {
+                return ReadAssembly(assemblyFile, resolver, pdbPresent, verbose);
+            }
+        }
+
+        public void Process(string assemblyFile, AssemblyDefinition assembly, bool pdbPresent, bool optimize, bool verbose)
         {
             if (!File.Exists(assemblyFile))
             {
@@ -34,9 +48,6 @@ namespace FluentIL
             }
 
             if (verbose) _log.Log(GenericInfoRule, $"Started for {Path.GetFileName(assemblyFile)}");
-
-            var pdbPresent = AreSymbolsFound(assemblyFile);
-            var assembly = ReadAssembly(assemblyFile, resolver, pdbPresent, verbose);
 
             var modified = PatchAssembly(assembly, optimize, verbose);
 
@@ -73,15 +84,9 @@ namespace FluentIL
 
         private AssemblyDefinition ReadAssembly(string assemblyFile, IAssemblyResolver resolver, bool readSymbols,bool verbose)
         {
-            var assembly = AssemblyDefinition.ReadAssembly(assemblyFile,
-                new ReaderParameters
-                {
-                    ReadingMode = ReadingMode.Deferred
-                });
+            var assemblyName = GetAssemblyNameDefinition(assemblyFile);
 
-            assembly.Dispose();
-
-            assembly = resolver.Resolve(assembly.Name, new ReaderParameters
+            var assembly = resolver.Resolve(assemblyName, new ReaderParameters
             {
                 ReadingMode = ReadingMode.Deferred,
                 ReadWrite = true,
@@ -94,6 +99,18 @@ namespace FluentIL
             return assembly;
         }
 
+        private static AssemblyNameDefinition GetAssemblyNameDefinition(string assemblyFile)
+        {
+            using (var assembly = AssemblyDefinition.ReadAssembly(assemblyFile,
+                            new ReaderParameters
+                            {
+                                ReadingMode = ReadingMode.Deferred
+                            }))
+            {
+               return assembly.Name;
+            }
+        }
+
         private void WriteAssembly(AssemblyDefinition assembly, bool writeSymbols, bool verbose)
         {
             var param = new WriterParameters();
@@ -104,11 +121,6 @@ namespace FluentIL
             }
 
             assembly.Write(param);
-
-            if (assembly.MainModule.SymbolReader != null)
-                assembly.MainModule.SymbolReader.Dispose();
-
-            assembly.Dispose();
 
             if (verbose) _log.Log(GenericInfoRule, "Assembly has been written.");
         }
