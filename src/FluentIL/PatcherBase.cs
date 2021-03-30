@@ -83,7 +83,7 @@ namespace FluentIL
 
             assembly = resolver.Resolve(assembly.Name, new ReaderParameters
             {
-                ReadingMode = ReadingMode.Deferred,
+                ReadingMode = ReadingMode.Immediate,
                 ReadWrite = true,
                 AssemblyResolver = resolver,
                 ReadSymbols = readSymbols
