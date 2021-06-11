@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace FluentIL
 {
-    public delegate Cut PointCut(Cut cut);
+    public delegate Cut PointCut(in Cut cut);
 
     public static class CutEvents
     {
@@ -21,6 +21,7 @@ namespace FluentIL
         private readonly MethodBody _body;
 
         public MethodDefinition Method => _body.Method;
+        public TypeSystem TypeSystem => _body.Method.Module.TypeSystem;
 
         private Collection<Instruction> Instructions => _body.Instructions;
 

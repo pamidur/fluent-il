@@ -7,25 +7,25 @@ namespace FluentIL
 {
     public static class TypeMembers
     {
-        public static Cut ThisOrStatic(this Cut cut) =>
+        public static Cut ThisOrStatic(this in Cut cut) =>
             cut.Method.HasThis ? cut.This() : cut;
 
-        public static Cut ThisOrNull(this Cut cut) =>
+        public static Cut ThisOrNull(this in Cut cut) =>
             cut.Method.HasThis ? cut.This() : cut.Null();
 
-        public static Cut This(this Cut cut)
+        public static Cut This(this in Cut cut)
         {
             if (cut.Method.HasThis) return cut.Write(OpCodes.Ldarg_0);
             else throw new InvalidOperationException("Attempt to load 'this' on static method.");
         }       
 
-        public static Cut Load(this Cut cut, VariableDefinition variable) => cut
+        public static Cut Load(this in Cut cut, VariableDefinition variable) => cut
             .Write(OpCodes.Ldloc, variable);
 
-        public static Cut Load(this Cut cut, ParameterReference par) => cut
+        public static Cut Load(this in Cut cut, ParameterReference par) => cut
             .Write(OpCodes.Ldarg, par.Resolve());
 
-        public static Cut Load(this Cut cut, FieldReference field)
+        public static Cut Load(this in Cut cut, FieldReference field)
         {
             if(!field.IsCallCompatible())
                 throw new ArgumentException($"Uninitialized generic call reference: {field}");
@@ -35,13 +35,13 @@ namespace FluentIL
             return cut.Write(fieldDef.IsStatic ? OpCodes.Ldsfld : OpCodes.Ldfld, field);
         }
 
-        public static Cut LoadRef(this Cut cut, VariableDefinition variable) => cut
+        public static Cut LoadRef(this in Cut cut, VariableDefinition variable) => cut
             .Write(OpCodes.Ldloca, variable);
 
-        public static Cut LoadRef(this Cut cut, ParameterReference par) => cut
+        public static Cut LoadRef(this in Cut cut, ParameterReference par) => cut
             .Write(OpCodes.Ldarga, par.Resolve());
 
-        public static Cut LoadRef(this Cut cut, FieldReference field)
+        public static Cut LoadRef(this in Cut cut, FieldReference field)
         {
             if (!field.IsCallCompatible())
                 throw new ArgumentException($"Uninitialized generic call reference: {field}");
@@ -51,7 +51,7 @@ namespace FluentIL
             return cut.Write(fieldDef.IsStatic ? OpCodes.Ldsflda : OpCodes.Ldflda, field);
         }
 
-        public static Cut Store(this Cut cut, FieldReference field, PointCut value = null)
+        public static Cut Store(this in Cut cut, FieldReference field, PointCut value = null)
         {
             if (!field.IsCallCompatible())
                 throw new ArgumentException($"Uninitialized generic call reference: {field}");
@@ -63,11 +63,11 @@ namespace FluentIL
                 .Write(fieldDef.IsStatic ? OpCodes.Stsfld : OpCodes.Stfld, field);
         }
 
-        public static Cut Store(this Cut cut, VariableDefinition variable, PointCut value = null) => cut
+        public static Cut Store(this in Cut cut, VariableDefinition variable, PointCut value = null) => cut
            .Here(value)
            .Write(OpCodes.Stloc, variable);
 
-        public static Cut Store(this Cut cut, ParameterReference par, PointCut value = null)
+        public static Cut Store(this in Cut cut, ParameterReference par, PointCut value = null)
         {
             if (par.ParameterType.IsByReference)
             {

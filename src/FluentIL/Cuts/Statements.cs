@@ -7,17 +7,19 @@ namespace FluentIL
 {
     public static class Statements
     {
-        public static Cut Return(this Cut cut)
+        public static Cut Return(this in Cut cut)
         {
             return cut.Write(OpCodes.Ret);
         }
 
-        public static Cut Call(this Cut cut, MethodReference method, PointCut args = null)
+        public static Cut Call(this in Cut cut, MethodReference method, PointCut args = null)
         {
+            var cur_cut = cut;
+
             if (!method.IsCallCompatible())
                 throw new ArgumentException($"Uninitialized generic call reference: {method}");
 
-            if (args != null) cut = cut.Here(args);
+            if (args != null) cur_cut = cur_cut.Here(args);
 
             var methodDef = method.Resolve();
 
@@ -25,10 +27,10 @@ namespace FluentIL
             if (methodDef.IsConstructor) code = OpCodes.Newobj;
             else if (methodDef.IsVirtual) code = OpCodes.Callvirt;
 
-            return cut.Write(code, method);
+            return cur_cut.Write(code, method);
         }
 
-        public static Cut IfEqual(this Cut pc, PointCut left, PointCut right, PointCut pos = null, PointCut neg = null)
+        public static Cut IfEqual(this in Cut pc, PointCut left, PointCut right, PointCut pos = null, PointCut neg = null)
         {
             if (pos != null && neg != null)
                 return Compare(pc, left, right, OpCodes.Ceq, pos, neg);
@@ -42,9 +44,9 @@ namespace FluentIL
             return pc;
         }
 
-        private static Cut Compare(Cut pc, PointCut left, PointCut right, OpCode cmp, PointCut pos, PointCut neg)
+        private static Cut Compare(in Cut cut, PointCut left, PointCut right, OpCode cmp, PointCut pos, PointCut neg)
         {
-            pc = pc
+            var pc = cut
                 .Here(left)
                 .Here(right)
                 .Write(cmp);
@@ -60,9 +62,9 @@ namespace FluentIL
             return exit;
         }
 
-        private static Cut Compare(Cut pc, PointCut left, PointCut right, OpCode cmp, OpCode brexit, PointCut action)
+        private static Cut Compare(in Cut cut, PointCut left, PointCut right, OpCode cmp, OpCode brexit, PointCut action)
         {
-            pc = pc
+            var pc = cut
                 .Here(left)
                 .Here(right)
                 .Write(cmp);

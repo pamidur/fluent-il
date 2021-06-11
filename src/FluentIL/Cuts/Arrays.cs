@@ -7,9 +7,9 @@ namespace FluentIL
 {
     public static class Arrays
     {
-        public static Cut CreateArray(this Cut pc, TypeReference elementType, params PointCut[] elements)
+        public static Cut CreateArray(this in Cut cut, TypeReference elementType, params PointCut[] elements)
         {
-            pc = pc
+            var pc = cut
                 .Write(OpCodes.Ldc_I4, elements.Length)
                 .Write(OpCodes.Newarr, elementType);
 
@@ -22,14 +22,14 @@ namespace FluentIL
             return pc;
         }
 
-        public static Cut GetByIndex(this Cut pc, TypeReference elementType, int index)
+        public static Cut GetByIndex(this in Cut pc, TypeReference elementType, int index)
         {
             return pc
                 .Write(OpCodes.Ldc_I4, index)
                 .Write(GetLoadOpcode(elementType));
         }
 
-        public static Cut SetByIndex(this Cut pc, TypeReference elementType, int index, PointCut value)
+        public static Cut SetByIndex(this in Cut pc, TypeReference elementType, int index, PointCut value)
         {
             return pc
                 .Write(OpCodes.Ldc_I4, index)

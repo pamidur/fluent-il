@@ -5,6 +5,7 @@ using System.Linq;
 
 namespace FluentIL.Resolvers
 {
+    
     public class KnownReferencesAssemblyResolver : CachedAssemblyResolver
     {
         private readonly List<string> _references = new List<string>();

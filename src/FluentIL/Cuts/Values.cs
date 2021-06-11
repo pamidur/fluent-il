@@ -3,35 +3,33 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using System;
 using System.Linq;
-using System.Reflection;
 
 namespace FluentIL
 {
     public static class Values
     {
-
-        public static Cut Pop(this Cut pc) => pc
+        public static Cut Pop(this in Cut pc) => pc
             .Write(OpCodes.Pop);
 
-        public static Cut Null(this Cut pc) => pc
+        public static Cut Null(this in Cut pc) => pc
             .Write(OpCodes.Ldnull);
 
-        public static Cut Dup(this Cut pc) => pc
+        public static Cut Dup(this in Cut pc) => pc
             .Write(OpCodes.Dup);
 
-        public static Cut Delegate(this Cut cut, MethodReference method) => cut
+        public static Cut Delegate(this in Cut cut, MethodReference method) => cut
             .Write(OpCodes.Ldftn, method);
 
-        public static Cut TypeOf(this Cut cut, TypeReference type) => cut
+        public static Cut TypeOf(this in Cut cut, TypeReference type) => cut
             .Write(OpCodes.Ldtoken, type)
             .Write(OpCodes.Call, GetTypeFromHandleMethod_Ref(cut));
 
-        public static Cut MethodOf(this Cut cut, MethodReference method) => cut
+        public static Cut MethodOf(this in Cut cut, MethodReference method) => cut
             .Write(OpCodes.Ldtoken, method)
             .Write(OpCodes.Ldtoken, method.DeclaringType)
             .Write(OpCodes.Call, GetMethodFromHandleMethod_Ref(cut));
 
-        public static Cut Value(this Cut pc, object value)
+        public static Cut Value(this in Cut pc, object value)
         {
             if (value == null)
                 return Null(pc);
@@ -50,7 +48,7 @@ namespace FluentIL
                 throw new NotSupportedException(valueType.ToString());
         }
 
-        public static Cut Primitive(this Cut pc, object value)
+        public static Cut Primitive(this in Cut pc, object value)
         {
             var valueType = value.GetType();
 
@@ -75,46 +73,48 @@ namespace FluentIL
             }
         }
 
-        public static Cut Cast(this Cut cut, TypeReference typeOnStack, TypeReference expectedType)
+        public static Cut Cast(this in Cut cut, TypeReference typeOnStack, TypeReference expectedType)
         {
+            var result = cut;
+
             if (typeOnStack.Match(expectedType))
-                return cut;
+                return result;
 
             if (expectedType.IsByReference)
             {
                 var elementType = ((ByReferenceType)expectedType).ElementType;
-                cut = cut.Cast(typeOnStack, elementType);
-                return StoreByReference(cut, elementType);
+                result = result.Cast(typeOnStack, elementType);
+                return StoreByReference(result, elementType);
             }
 
             if (typeOnStack.IsByReference)
             {
                 typeOnStack = ((ByReferenceType)typeOnStack).ElementType;
-                cut = LoadByReference(cut, typeOnStack);
+                result = LoadByReference(result, typeOnStack);
             }
 
             if (typeOnStack.Match(expectedType))
-                return cut;
+                return result;
 
             if (expectedType.IsValueType || expectedType.IsGenericParameter)
             {
                 if (!typeOnStack.IsValueType)
-                    return cut.Write(OpCodes.Unbox_Any, expectedType);
+                    return result.Write(OpCodes.Unbox_Any, expectedType);
             }
             else
             {
                 if (typeOnStack.IsValueType || typeOnStack.IsGenericParameter)
-                    return cut.Write(OpCodes.Box, typeOnStack);
-                else if (!expectedType.Match(StandardTypes.Object))
-                    return cut.Write(OpCodes.Castclass, expectedType);
+                    return result.Write(OpCodes.Box, typeOnStack);
+                else if (!expectedType.Match(cut.TypeSystem.Object))
+                    return result.Write(OpCodes.Castclass, expectedType);
                 else
-                    return cut;
+                    return result;
             }
 
             throw new InvalidCastException($"Cannot cast '{typeOnStack}' to '{expectedType}'");
         }
 
-        private static Cut StoreByReference(Cut pc, TypeReference elemType)
+        private static Cut StoreByReference(in Cut pc, TypeReference elemType)
         {
             switch (elemType.MetadataType)
             {
@@ -145,7 +145,7 @@ namespace FluentIL
             throw new NotSupportedException($"No instruction for {elemType.MetadataType}");
         }
 
-        private static Cut LoadByReference(Cut pc, TypeReference elemType)
+        private static Cut LoadByReference(in Cut pc, TypeReference elemType)
         {
             switch (elemType.MetadataType)
             {
@@ -176,14 +176,16 @@ namespace FluentIL
             throw new NotSupportedException($"No instruction for {elemType.MetadataType}");
         }
 
-        private static Cut AttributeArgument(Cut pc, CustomAttributeArgument argument)
+        private static Cut AttributeArgument(in Cut cut, CustomAttributeArgument argument)
         {
             var val = argument.Value;
+
+            var pc = cut;
 
             if (val != null && val.GetType().IsArray)
                 pc = pc.CreateArray(
                     argument.Type.GetElementType(),
-                    ((Array)val).Cast<object>().Select<object, PointCut>(v => il => il.Value(v)).ToArray()
+                    ((Array)val).Cast<object>().Select<object, PointCut>(v => (in Cut il) => il.Value(v)).ToArray()
                     );
             else
             {
@@ -196,21 +198,21 @@ namespace FluentIL
             return pc;
         }
 
-        private static MethodReference GetTypeFromHandleMethod_Ref(Cut cut)
+        private static MethodReference GetTypeFromHandleMethod_Ref(in Cut cut)
         {
-            var tref = cut.Import(StandardTypes.Type);
+            var tref = cut.Import(StandardType.Type);
             var mr = new MethodReference("GetTypeFromHandle", tref, tref);
-            mr.Parameters.Add(new ParameterDefinition(cut.Import(StandardTypes.GetType(typeof(RuntimeTypeHandle)))));
+            mr.Parameters.Add(new ParameterDefinition(cut.Import(StandardType.RuntimeTypeHandle)));
 
             return mr;
         }
 
-        private static MethodReference GetMethodFromHandleMethod_Ref(Cut cut)
+        private static MethodReference GetMethodFromHandleMethod_Ref(in Cut cut)
         {
-            var mbref = cut.Import(StandardTypes.GetType(typeof(MethodBase)));
+            var mbref = cut.Import(StandardType.MethodBase);
             var mr = new MethodReference("GetMethodFromHandle", mbref, mbref);
-            mr.Parameters.Add(new ParameterDefinition(cut.Import(StandardTypes.GetType(typeof(RuntimeMethodHandle)))));
-            mr.Parameters.Add(new ParameterDefinition(cut.Import(StandardTypes.GetType(typeof(RuntimeTypeHandle)))));
+            mr.Parameters.Add(new ParameterDefinition(cut.Import(StandardType.RuntimeMethodHandle)));
+            mr.Parameters.Add(new ParameterDefinition(cut.Import(StandardType.RuntimeTypeHandle)));
             return mr;
         }
     }

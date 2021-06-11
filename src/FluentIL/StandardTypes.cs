@@ -1,70 +1,65 @@
-﻿using Mono.Cecil;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Text;
 
 namespace FluentIL
 {
-    public static class StandardTypes
+    public class StandardType
     {
-        private static readonly AssemblyNameReference _corelib = ModuleDefinition.ReadModule(typeof(StandardTypes).Assembly.Location)
-            .AssemblyReferences.First(r => r.Name == "netstandard");
-
-        private static readonly ModuleDefinition _fakeModule = ModuleDefinition.CreateModule("fakemodule", ModuleKind.Dll);
-        private static readonly Dictionary<Type, TypeReference> _typeCache = new Dictionary<Type, TypeReference>();
-
-        public static TypeReference Boolean { get; } = GetType(typeof(bool));
-        public static TypeReference Byte { get; } = GetType(typeof(byte));
-        public static TypeReference Char { get; } = GetType(typeof(char));
-        public static TypeReference Double { get; } = GetType(typeof(double));
-        public static TypeReference Int16 { get; } = GetType(typeof(short));
-        public static TypeReference Int32 { get; } = GetType(typeof(int));
-        public static TypeReference Int64 { get; } = GetType(typeof(long));
-        public static TypeReference IntPtr { get; } = GetType(typeof(IntPtr));
-        public static TypeReference Object { get; } = GetType(typeof(object));
-        public static TypeReference SByte { get; } = GetType(typeof(sbyte));
-        public static TypeReference Single { get; } = GetType(typeof(float));
-        public static TypeReference String { get; } = GetType(typeof(string));
-        public static TypeReference TypedReference { get; } = GetType(typeof(TypedReference));
-        public static TypeReference UInt16 { get; } = GetType(typeof(ushort));
-        public static TypeReference UInt32 { get; } = GetType(typeof(uint));
-        public static TypeReference UInt64 { get; } = GetType(typeof(ulong));
-        public static TypeReference UIntPtr { get; } = GetType(typeof(UIntPtr));
-        public static TypeReference Void { get; } = GetType(typeof(void));
-        public static TypeReference ObjectArray { get; } = new ArrayType(Object);
-        public static TypeReference Task { get; } = GetType(typeof(Task));
-        public static TypeReference Type { get; } = GetType(typeof(Type));
-        public static TypeReference Attribute { get; } = GetType(typeof(Attribute));
-
-        public static void UpdateCoreLibRef(ModuleDefinition module)
+        public static readonly StandardType MethodBase = new StandardType("System.Reflection", "MethodBase");
+        public static readonly StandardType Attribute = new StandardType("System", "Attribute");
+        public static readonly StandardType Type = new StandardType("System", "Type");
+        public static readonly StandardType RuntimeTypeHandle = new StandardType("System", "RuntimeTypeHandle", isValueType: true);
+        public static readonly StandardType RuntimeMethodHandle = new StandardType("System", "RuntimeMethodHandle", isValueType: true);
+        public static readonly StandardType AsyncStateMachineAttribute = new StandardType("System.Runtime.CompilerServices", "AsyncStateMachineAttribute");
+        public static readonly StandardType IteratorStateMachineAttribute = new StandardType("System.Runtime.CompilerServices", "IteratorStateMachineAttribute");
+        public StandardType(string @namespace, string name, 
+            bool isValueType = false, bool isArray = false, 
+            IReadOnlyList<StandardType> elements = null,
+            IReadOnlyList<string> assemblyHints = null
+            )
         {
-            if (!module.AssemblyReferences.Any(r => r.Name == _corelib.Name))
-                module.AssemblyReferences.Add(_corelib);
+            Namespace = @namespace;
+            Name = name;
+            IsValueType = isValueType;
+            IsArray = isArray;
+            Elements = elements ?? new StandardType[] { };
+            AssemblyHints = assemblyHints ?? new string[] { };
         }
 
-        public static TypeReference GetType(Type type)
+        public string Namespace { get; }
+        public string Name { get; }
+        public bool IsValueType { get; }
+        public bool IsArray { get; }
+        public IReadOnlyList<StandardType> Elements { get; }
+        public IReadOnlyList<string> AssemblyHints { get; }
+
+        public override string ToString()
         {
-            if (!_typeCache.TryGetValue(type, out var tr))
+            var fullname = new StringBuilder().Append(Namespace).Append(".").Append(Name);
+            if (Elements.Count > 0)
             {
-                tr = new TypeReference(type.Namespace, type.Name, _fakeModule, _corelib, type.IsValueType);
-
-                if (type.IsGenericTypeDefinition)
+                //fullname.Append("`");
+                //fullname.Append(Elements.Count);
+                fullname.Append("<");
+                var last = Elements.Last();
+                foreach (var element in Elements)
                 {
-                    var arguments = type.GetGenericArguments();
-                    for (int i = 0; i < arguments.Length; i++)
-                    {
-                        tr.GenericParameters.Add(new GenericParameter(arguments[i].Name, tr));
-                    }
+                    fullname.Append(element.ToString());
+                    if (element != last)
+                        fullname.Append(",");
                 }
-
-                if (tr.Resolve() == null)
-                    throw new InvalidOperationException($"'{type.FullName}' not a part of standard lib.");
-
-                _typeCache[type] = tr;
+                fullname.Append(">");
             }
+            if (IsArray)
+                fullname.Append("[]");
 
-            return tr;
+            return fullname.ToString();
         }
-    }
+
+        public StandardType MakeArray()
+        {
+            return new StandardType(Namespace, Name, IsValueType, true, Elements, AssemblyHints);
+        }
+    }   
 }

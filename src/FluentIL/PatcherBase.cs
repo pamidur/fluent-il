@@ -44,11 +44,7 @@ namespace FluentIL
             {
                 if (modified)
                 {
-                    foreach (var m in assembly.Modules)
-                        StandardTypes.UpdateCoreLibRef(m);
-
                     if (verbose) _log.Log(GenericInfoRule, "Assembly has been patched.");
-
                     WriteAssembly(assembly, pdbPresent, verbose);
                 }
                 else if (verbose) _log.Log(GenericInfoRule, "No patching required.");

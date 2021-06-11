@@ -1,15 +1,11 @@
 ﻿using Mono.Cecil;
 using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace FluentIL.Extensions
 {
     public static class CecilReferenceExtensions
     {
-        private static readonly TypeReference _asyncStateMachineAttribute = StandardTypes.GetType(typeof(AsyncStateMachineAttribute));
-        private static readonly TypeReference _iteratorStateMachineAttribute = StandardTypes.GetType(typeof(IteratorStateMachineAttribute));
-
         public static bool Match(this TypeReference tr1, TypeReference tr2)
         {
             if (tr1 == null || tr2 == null)
@@ -18,6 +14,14 @@ namespace FluentIL.Extensions
             if (tr1 == tr2) return true;
 
             return tr1.FullName == tr2.FullName;
+        }
+
+        public static bool Match(this TypeReference tr1, StandardType type)
+        {
+            if (tr1 == null || type == null)
+                return false;
+
+            return tr1.FullName == type.ToString();
         }
 
         public static bool Implements(this TypeReference tr, TypeReference @interface)
@@ -30,12 +34,12 @@ namespace FluentIL.Extensions
 
         public static bool IsAsync(this MethodDefinition m)
         {
-            return m.CustomAttributes.Any(a => a.AttributeType.Match(_asyncStateMachineAttribute));
+            return m.CustomAttributes.Any(a => a.AttributeType.Match(StandardType.AsyncStateMachineAttribute));
         }
 
         public static bool IsIterator(this MethodDefinition m)
         {
-            return m.CustomAttributes.Any(a => a.AttributeType.Match(_iteratorStateMachineAttribute));
+            return m.CustomAttributes.Any(a => a.AttributeType.Match(StandardType.IteratorStateMachineAttribute));
         }
 
         public static bool IsUnsafe(this MethodDefinition m)
