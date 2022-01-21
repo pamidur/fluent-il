@@ -59,6 +59,15 @@ namespace FluentIL
             return new Cut(_body, _refInst.Previous);
         }
 
+        public Cut SkipNops()
+        {
+            if (_exit) return this;
+            var i = _entry ? _body.Instructions[0] : _refInst;
+            while (i.OpCode == OpCodes.Nop)
+                i = i.Next;
+            return new Cut(_body, i);
+        }
+
         public Cut Here(PointCut pc)
         {
             if (pc == null) return this;
@@ -72,7 +81,6 @@ namespace FluentIL
             if (_entry)
             {
                 Instructions.Insert(0, instruction);
-                WriteDebugInfo(instruction, 0, false);
 
                 foreach (var handler in _body.ExceptionHandlers.Where(h => h.HandlerStart == null).ToList())
                     handler.HandlerStart = _refInst;
@@ -80,7 +88,6 @@ namespace FluentIL
             else if (_exit || _refInst == Instructions[Instructions.Count - 1])
             {
                 Instructions.Add(instruction);
-                WriteDebugInfo(instruction, 0, true);
 
                 if (!_exit)
                     foreach (var handler in _body.ExceptionHandlers.Where(h => h.HandlerEnd == null).ToList())
@@ -90,38 +97,9 @@ namespace FluentIL
             {
                 var index = Instructions.IndexOf(_refInst) + 1;
                 Instructions.Insert(index, instruction);
-                WriteDebugInfo(instruction, Instructions.Count - index, true);
             }
 
             return new Cut(_body, instruction);
-        }
-
-        private void WriteDebugInfo(Instruction instruction, int candidateIndex, bool reverse)
-        {
-            var debugInfo = _body.Method.DebugInformation;
-            if (!debugInfo.HasSequencePoints)
-                return;
-
-            IEnumerable<Instruction> canditatesSps = Instructions;
-
-            if (reverse)
-                canditatesSps = canditatesSps.Reverse();
-
-            var canditateSp = canditatesSps.Skip(candidateIndex)
-                .Select(i => debugInfo.GetSequencePoint(i)).FirstOrDefault(sp => sp != null);
-
-            if (canditateSp == null)
-                return;
-
-            var newSp = new SequencePoint(instruction, canditateSp.Document)
-            {
-                EndColumn = canditateSp.EndColumn,
-                StartColumn = canditateSp.StartColumn,
-                EndLine = canditateSp.EndLine,
-                StartLine = canditateSp.StartLine
-            };
-
-            debugInfo.SequencePoints.Add(newSp);
         }
 
         public Instruction Emit(OpCode opCode, object operand)

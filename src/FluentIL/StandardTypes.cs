@@ -39,8 +39,6 @@ namespace FluentIL
             var fullname = new StringBuilder().Append(Namespace).Append(".").Append(Name);
             if (Elements.Count > 0)
             {
-                //fullname.Append("`");
-                //fullname.Append(Elements.Count);
                 fullname.Append("<");
                 var last = Elements.Last();
                 foreach (var element in Elements)
