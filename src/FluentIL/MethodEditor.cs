@@ -14,6 +14,12 @@ namespace FluentIL
                 .Prev()
                 .Here(action);
         }
+
+        public static void AfterInstruction(this MethodBody body, Instruction instruction, PointCut action)
+        {
+            new Cut(body, instruction)
+                .Here(action);
+        }
         public static void AfterEntry(this MethodBody body, PointCut action)
         {
             new Cut(body, GetCodeStart(body))
@@ -131,11 +137,13 @@ namespace FluentIL
             var insts = body.Instructions;
             var start = startingFrom == null ? 0 : insts.IndexOf(startingFrom);
 
-            var icol = insts.Skip(start).ToArray();
+            var icol = insts.Skip(start).Where(predicate).ToArray();
+
+            if (icol.Length == 0)
+                throw new InvalidOperationException("Expected sequence is not found even once. Unsupported language/version ?");
 
             foreach (var curi in icol)
-                if (predicate(curi))
-                    new Cut(body, curi).Here(pc);
+                new Cut(body, curi).Here(pc);
         }
     }
 }
